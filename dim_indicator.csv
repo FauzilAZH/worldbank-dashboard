@@ -1,0 +1,3 @@
+"indicator_code","indicator_name","source_note"
+"NY.GDP.MKTP.CD","GDP (current US$)","Data from World Bank API"
+"SP.POP.TOTL","Population, total","Data from World Bank API"
