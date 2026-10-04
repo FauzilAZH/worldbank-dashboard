@@ -27,7 +27,7 @@ def load_data():
         ).reset_index()
         
         df_pivot.rename(columns={'NY.GDP.MKTP.CD': 'gdp_value', 'SP.POP.TOTL': 'population'}, inplace=True)
-        df_pivot.fillna(method='ffill', inplace=True)
+        df_pivot.ffill(inplace=True)
         df_pivot.fillna(0, inplace=True)
         
         # Join Table
