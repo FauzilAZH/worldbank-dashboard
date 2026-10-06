@@ -5,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, r2_score
 
 # Set konfigurasi halaman Dashboard
-st.set_page_config(page_title="World Bank Dashboard", page_icon="🌍", layout="wide")
+st.set_page_config(page_title="World Bank Dashboard", layout="wide")
 
 # --- 1. FUNGSI UNTUK LOAD & CLEAN DATA ---
 @st.cache_data
@@ -46,9 +46,9 @@ df_master = load_data()
 
 if not df_master.empty:
     # --- 2. SIDEBAR (NAVIGASI & FILTER) ---
-    st.sidebar.title("🌍 GEDI Dashboard")
+    st.sidebar.title("GEDI Dashboard")
     st.sidebar.caption("Global Economic & Demographic Insights")
-    st.sidebar.markdown("---")
+    st.sidebar.divider()
     
     menu = st.sidebar.radio("Pilih Menu:", [
         "1. Tinjauan Eksekutif", 
@@ -56,11 +56,11 @@ if not df_master.empty:
         "3. Prediksi Machine Learning"
     ])
     
-    st.sidebar.markdown("---")
+    st.sidebar.divider()
     
     # --- 3. MENU 1: TINJAUAN EKSEKUTIF ---
     if menu == "1. Tinjauan Eksekutif":
-        st.title("📈 Tinjauan Eksekutif Global")
+        st.title("Tinjauan Eksekutif Global")
         st.write("Ringkasan kondisi ekonomi dan populasi dunia.")
         
         # FILTER TAHUNAN
@@ -73,14 +73,17 @@ if not df_master.empty:
         
         # Kolom Metrik
         col1, col2, col3 = st.columns(3)
-        col1.metric("Negara Dianalisis", f"{df_terbaru['country_code'].nunique()} Negara")
-        col2.metric(f"Populasi Global ({selected_year})", f"{df_terbaru['population'].sum() / 1e9:.2f} Miliar Jiwa")
-        col3.metric(f"Total GDP Global ({selected_year})", f"${df_terbaru['gdp_value'].sum() / 1e12:.2f} Triliun")
+        with col1:
+            st.metric("Negara Dianalisis", f"{df_terbaru['country_code'].nunique()} Negara")
+        with col2:
+            st.metric(f"Populasi Global ({selected_year})", f"{df_terbaru['population'].sum() / 1e9:.2f} Miliar Jiwa")
+        with col3:
+            st.metric(f"Total GDP Global ({selected_year})", f"${df_terbaru['gdp_value'].sum() / 1e12:.2f} Triliun")
         
-        st.markdown("---")
+        st.divider()
         
         # Peta Geospasial
-        st.subheader(f"🗺️ Peta Sebaran Populasi Global ({selected_year})")
+        st.subheader(f"Peta Sebaran Populasi Global ({selected_year})")
         fig_map = px.choropleth(
             df_terbaru, locations="country_code", color="population",
             hover_name="country_name", color_continuous_scale=px.colors.sequential.Plasma
@@ -88,10 +91,10 @@ if not df_master.empty:
         fig_map.update_layout(geo=dict(showframe=False, showcoastlines=True), margin={"r":0,"t":0,"l":0,"b":0})
         st.plotly_chart(fig_map, use_container_width=True)
         
-        st.markdown("---")
+        st.divider()
         
         # Tren Historis Global
-        st.subheader("📊 Tren Pertumbuhan GDP Global (Seluruh Tahun)")
+        st.subheader("Tren Pertumbuhan GDP Global (Seluruh Tahun)")
         df_trend = df_master.groupby('year')['gdp_value'].sum().reset_index()
         fig_trend = px.area(df_trend, x='year', y='gdp_value', title="Pertumbuhan Ekonomi Dunia")
         fig_trend.update_traces(line_color='#00b4d8', fillcolor='rgba(0, 180, 216, 0.3)')
@@ -100,36 +103,36 @@ if not df_master.empty:
 
     # --- 4. MENU 2: ANALISIS MENDALAM (EDA) ---
     elif menu == "2. Analisis Mendalam (EDA)":
-        st.title("🔍 Analisis Ekonomi Mendalam")
+        st.title("Analisis Ekonomi Mendalam")
         st.write("Eksplorasi hubungan antar variabel secara komprehensif (rata-rata dari seluruh tahun yang tersedia).")
         
         # Kumpulan Bar Chart
         col_bar1, col_bar2 = st.columns(2)
         with col_bar1:
-            st.subheader("🏆 Top 10 Total GDP")
+            st.subheader("Top 10 Total GDP")
             top_gdp = df_master.groupby('country_name')['gdp_value'].mean().sort_values(ascending=False).head(10).reset_index()
             fig_b1 = px.bar(top_gdp, x='gdp_value', y='country_name', orientation='h', color='gdp_value', color_continuous_scale='Viridis')
             st.plotly_chart(fig_b1, use_container_width=True)
             
         with col_bar2:
-            st.subheader("💰 Top 10 GDP per Kapita (Negara Terkaya)")
+            st.subheader("Top 10 GDP per Kapita (Negara Terkaya)")
             top_percap = df_master.groupby('country_name')['gdp_per_capita'].mean().sort_values(ascending=False).head(10).reset_index()
             fig_b2 = px.bar(top_percap, x='gdp_per_capita', y='country_name', orientation='h', color='gdp_per_capita', color_continuous_scale='Magma')
             st.plotly_chart(fig_b2, use_container_width=True)
 
-        st.markdown("---")
+        st.divider()
         
         col_pie, col_scatter = st.columns([1, 1.5])
         
         with col_pie:
-            st.subheader("🌍 Persentase Status Income")
+            st.subheader("Persentase Status Income")
             income_counts = df_master[['country_code', 'income_level']].drop_duplicates()['income_level'].value_counts().reset_index()
             income_counts.columns = ['income_level', 'count']
             fig_pie = px.pie(income_counts, values='count', names='income_level', hole=0.4, color_discrete_sequence=px.colors.qualitative.Pastel)
             st.plotly_chart(fig_pie, use_container_width=True)
             
         with col_scatter:
-            st.subheader("📌 Korelasi Populasi vs GDP")
+            st.subheader("Korelasi Populasi vs GDP")
             # Kita ambil rata-rata tiap negara agar titiknya pas
             df_scatter = df_master.groupby(['country_name', 'region'])[['population', 'gdp_value']].mean().reset_index()
             fig_scatter = px.scatter(
@@ -139,9 +142,9 @@ if not df_master.empty:
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
 
-        st.markdown("---")
+        st.divider()
         
-        st.subheader("🏢 Rata-rata GDP Berdasarkan Kawasan (Region)")
+        st.subheader("Rata-rata GDP Berdasarkan Kawasan (Region)")
         df_region = df_master.groupby('region')['gdp_value'].mean().sort_values(ascending=False).reset_index()
         fig_reg = px.bar(df_region, x='region', y='gdp_value', color='region')
         st.plotly_chart(fig_reg, use_container_width=True)
@@ -149,7 +152,7 @@ if not df_master.empty:
 
     # --- 5. MENU 3: PREDIKSI MACHINE LEARNING ---
     elif menu == "3. Prediksi Machine Learning":
-        st.title("🤖 Kecerdasan Buatan (Regresi Linear)")
+        st.title("Kecerdasan Buatan (Regresi Linear)")
         st.write("Pilih negara untuk memprediksi arah tren ekonominya di masa depan.")
         
         list_negara = df_master['country_name'].dropna().unique()
@@ -180,10 +183,16 @@ if not df_master.empty:
             r2 = r2_score(y_test, y_pred_test)
             
             # Tampilan Metrik Evaluasi
-            st.success("✨ Model berhasil mempelajari pola sejarah!")
+            st.success("Model berhasil mempelajari pola sejarah!")
+            
+            st.write("**Hasil Evaluasi Model:**")
             col_m1, col_m2 = st.columns(2)
-            col_m1.info(f"🎯 **Akurasi Pola (R-Squared):** {r2 * 100:.2f}%")
-            col_m2.info(f"💵 **Rata-rata Meleset (MAE):** USD {mae:,.0f}")
+            with col_m1:
+                st.info(f"**Akurasi Pola (R-Squared):** {r2 * 100:.2f}%")
+            with col_m2:
+                st.info(f"**Rata-rata Meleset (MAE):** USD {mae:,.0f}")
+            
+            st.divider()
             
             # Visualisasi
             fig_pred = px.line(title=f"Grafik Prediksi Tren GDP - {selected_country}")
