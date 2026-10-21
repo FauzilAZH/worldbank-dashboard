@@ -1,5 +1,3 @@
-# worldbank-dashboard
-
 # 🌍 Global Economic & Demographic Insights (GEDI)
 ### Automated World Bank ETL Pipeline, Data Warehouse & Predictive Analytics
 
